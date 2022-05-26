@@ -49,6 +49,7 @@ public extension UIView {
         static var activeToasts = "com.toast-swift.activeToasts"
         static var activityView = "com.toast-swift.activityView"
         static var queue        = "com.toast-swift.queue"
+        static var verticalOffset = "com.toast-swift.verticalOffset"
     }
     
     /**
@@ -335,8 +336,14 @@ public extension UIView {
     // MARK: - Private Show/Hide Methods
     
     private func showToast(_ toast: UIView, duration: TimeInterval, point: CGPoint) {
-        toast.center = point
+        var verticalOffset = 0.0
+        if point.y < self.bounds.size.height/2.0 {
+            verticalOffset = point.y
+        }else if point.y > self.bounds.size.height/2.0 {
+            verticalOffset = point.y - self.bounds.size.height
+        }
         toast.alpha = 0.0
+        toast.center = CGPoint(x: point.x, y: point.y - verticalOffset)
         
         if ToastManager.shared.isTapToDismissEnabled {
             let recognizer = UITapGestureRecognizer(target: self, action: #selector(UIView.handleToastTapped(_:)))
@@ -350,6 +357,7 @@ public extension UIView {
         
         UIView.animate(withDuration: ToastManager.shared.style.fadeDuration, delay: 0.0, options: [.curveEaseOut, .allowUserInteraction], animations: {
             toast.alpha = 1.0
+            toast.center = point
         }) { _ in
             let timer = Timer(timeInterval: duration, target: self, selector: #selector(UIView.toastTimerDidFinish(_:)), userInfo: toast, repeats: false)
             RunLoop.main.add(timer, forMode: .common)
@@ -361,9 +369,16 @@ public extension UIView {
         if let timer = objc_getAssociatedObject(toast, &ToastKeys.timer) as? Timer {
             timer.invalidate()
         }
-        
+        let point = toast.center
+        var verticalOffset = 0.0
+        if point.y < self.bounds.size.height/2.0 {
+            verticalOffset = point.y
+        }else if point.y > self.bounds.size.height/2.0 {
+            verticalOffset = point.y - self.bounds.size.height
+        }
         UIView.animate(withDuration: ToastManager.shared.style.fadeDuration, delay: 0.0, options: [.curveEaseIn, .beginFromCurrentState], animations: {
             toast.alpha = 0.0
+            toast.center = CGPoint(x: point.x, y: point.y - verticalOffset)
         }) { _ in
             toast.removeFromSuperview()
             self.activeToasts.remove(toast)
