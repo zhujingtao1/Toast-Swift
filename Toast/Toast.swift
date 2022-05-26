@@ -369,16 +369,8 @@ public extension UIView {
         if let timer = objc_getAssociatedObject(toast, &ToastKeys.timer) as? Timer {
             timer.invalidate()
         }
-        let point = toast.center
-        var verticalOffset = 0.0
-        if point.y < self.bounds.size.height/2.0 {
-            verticalOffset = point.y
-        }else if point.y > self.bounds.size.height/2.0 {
-            verticalOffset = point.y - self.bounds.size.height
-        }
         UIView.animate(withDuration: ToastManager.shared.style.fadeDuration, delay: 0.0, options: [.curveEaseIn, .beginFromCurrentState], animations: {
             toast.alpha = 0.0
-            toast.center = CGPoint(x: point.x, y: point.y - verticalOffset)
         }) { _ in
             toast.removeFromSuperview()
             self.activeToasts.remove(toast)
